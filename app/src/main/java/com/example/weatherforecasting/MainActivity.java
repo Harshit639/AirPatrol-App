@@ -14,6 +14,8 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,7 +37,9 @@ public class MainActivity extends AppCompatActivity {
     TextView descrip;
     TextView tempval;
     TextView aqil;
-    TextView aqud;
+    TextView aqud,cityname;
+    ProgressBar bar1,bar2,bar3,bar4;
+
 
 
     @Override
@@ -60,6 +64,11 @@ public class MainActivity extends AppCompatActivity {
         tempval = findViewById(R.id.textView2);
         aqil= findViewById(R.id.textView3);
         aqud=findViewById(R.id.textView4);
+        cityname=findViewById(R.id.textView9);
+        bar1=findViewById(R.id.progressBar1);
+        bar2=findViewById(R.id.progressBar2);
+        bar3=findViewById(R.id.progressBar3);
+        bar4=findViewById(R.id.progressBar4);
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 //        final String[] x = new String[1];
 //        final String[] y = new String[1];
@@ -107,19 +116,20 @@ public class MainActivity extends AppCompatActivity {
             Log.i("cdsc", "cdscdscds");
 //                Log.i("x",x);
 //                String encodedCityName = URLEncoder.encode(editText.getText().toString(), "UTF-8");
-//                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-//                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
-//                LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-//                Log.i("lat", String.valueOf(userLocation.latitude));
-//                String lat=String.valueOf(userLocation.latitude);
-//                String lon=String.valueOf(userLocation.longitude);
+                LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+                Log.i("lat", String.valueOf(userLocation.latitude));
+                String lat=String.valueOf(userLocation.latitude);
+                String lon=String.valueOf(userLocation.longitude);
 
+            task.execute("https://api.openweathermap.org/data/2.5/weather?lat=" + lat +"&lon="+lon+ "&appid=aa1ca6e3a3c3564b78a37a7c8b0e2f1a");
 
-            task.execute("https://api.openweathermap.org/data/2.5/weather?lat=12.8203368&lon=80.0449014&appid=5d6b1f234758771642fef1698dfcde50");
-            task2.execute("https://api.openweathermap.org/data/2.5/air_pollution?lat=12&lon=80&appid=5d6b1f234758771642fef1698dfcde50");
+//            task.execute("https://api.openweathermap.org/data/2.5/weather?lat=12.8203368&lon=80.0449014&appid=5d6b1f234758771642fef1698dfcde50");
+//            task2.execute("https://api.openweathermap.org/data/2.5/air_pollution?lat=12&lon=80&appid=5d6b1f234758771642fef1698dfcde50");
+            task2.execute("https://api.openweathermap.org/data/2.5/air_pollution?lat=" + lat +"&lon="+lon+ "&appid=aa1ca6e3a3c3564b78a37a7c8b0e2f1a");
 
-//              task.execute("https://api.openweathermap.org/data/2.5/weather?lat=" + lat +"&lon="+lon+ "&appid=aa1ca6e3a3c3564b78a37a7c8b0e2f1a");
 //
 //                InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 //                mgr.hideSoftInputFromWindow(editText.getWindowToken(), 0);
@@ -172,6 +182,9 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject jsonObject = new JSONObject(s);
 
                 String weatherInfo = jsonObject.getString("weather");
+                String city = jsonObject.getString("name");
+                Log.i("city",city);
+                cityname.setText(city+", India");
 
                 Log.i("Weather content", weatherInfo);
 
@@ -192,11 +205,17 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Double tempo = Double.valueOf(temp.getString("temp")) - 273;
                 Log.i("temp", String.valueOf(tempo));
+                bar1.setVisibility(View.GONE);
                 tempval.setText(String.valueOf(tempo.intValue())+"°");
 
 
                 if (!message.equals("")) {
-                    descrip.setText(message);
+                    bar4.setVisibility(View.GONE);
+                    if(message.contains("clouds")){
+                        descrip.setText("The weather is partly cloudy");
+                    }else{
+                        descrip.setText(message);
+                    }
                     Log.i("message", message);
                 } else {
                     Toast.makeText(getApplicationContext(), "Could not find weather :(", Toast.LENGTH_SHORT).show();
@@ -285,23 +304,25 @@ public class MainActivity extends AppCompatActivity {
                 if (!message.equals("")) {
 //                    descrip.setText(message);
                     int val=Integer.valueOf(message);
+                    bar2.setVisibility(View.GONE);
+                    bar3.setVisibility(View.GONE);
                     if(val==1){
                         aqil.setText("Good(AQI<50)");
                         aqud.setText("Fresh Air");
                     }
                     else if(val==2){
-                        aqil.setText("Stisfactory(AQI<50)");
+                        aqil.setText("Satisfactory(AQI>50)");
                         aqud.setText("Air is clean");
                     }
                     else if(val==3){
-                        aqil.setText("Mpderate(AQI<100)");
+                        aqil.setText("Moderate(AQI>100)");
                         aqud.setText("Suggested to wear a mask");
                     }
                     else if(val==4){
-                        aqil.setText("Poor(AQI<150)");
+                        aqil.setText("Poor(AQI>150)");
                         aqud.setText("Suggested to wear a mask");
                     }else if(val==5){
-                        aqil.setText("Polutted(AQI<200)");
+                        aqil.setText("Polutted(AQI>200)");
                         aqud.setText("Get the hell out of there");
                     }
 
