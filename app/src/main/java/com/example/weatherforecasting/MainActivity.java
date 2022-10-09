@@ -31,9 +31,12 @@ import java.net.URL;
 public class MainActivity extends AppCompatActivity {
     LocationManager locationManager;
     LocationListener locationListener;
-    String x,y;
+    String x, y;
     TextView descrip;
     TextView tempval;
+    TextView aqil;
+    TextView aqud;
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -53,8 +56,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getSupportActionBar().hide();
-        descrip=findViewById(R.id.textView);
-        tempval=findViewById(R.id.textView2);
+        descrip = findViewById(R.id.textView);
+        tempval = findViewById(R.id.textView2);
+        aqil= findViewById(R.id.textView3);
+        aqud=findViewById(R.id.textView4);
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 //        final String[] x = new String[1];
 //        final String[] y = new String[1];
@@ -62,10 +67,10 @@ public class MainActivity extends AppCompatActivity {
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                Log.i("Locationlon",String.valueOf(location.getLongitude()));
-                x =String.valueOf(location.getLatitude());
+                Log.i("Locationlon", String.valueOf(location.getLongitude()));
+                x = String.valueOf(location.getLatitude());
                 Log.i("Location", String.valueOf(location.getLatitude()));
-                y =String.valueOf(location.getLongitude());
+                y = String.valueOf(location.getLongitude());
 
             }
 
@@ -86,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
         };
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         } else {
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
         }
@@ -95,113 +100,225 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
-        public void getWeather() {
-            try {
-                DownloadTask task = new DownloadTask();
+    public void getWeather() {
+        try {
+            DownloadTask task = new DownloadTask();
+            pollutiontask task2 = new pollutiontask();
+            Log.i("cdsc", "cdscdscds");
 //                Log.i("x",x);
 //                String encodedCityName = URLEncoder.encode(editText.getText().toString(), "UTF-8");
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+//                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+//                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
-                LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-                Log.i("lat", String.valueOf(userLocation.latitude));
-                String lat=String.valueOf(userLocation.latitude);
-                String lon=String.valueOf(userLocation.longitude);
+//                LatLng userLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+//                Log.i("lat", String.valueOf(userLocation.latitude));
+//                String lat=String.valueOf(userLocation.latitude);
+//                String lon=String.valueOf(userLocation.longitude);
 
 
-//                task.execute("https://api.openweathermap.org/data/2.5/weather?lat=12.8203368&lon=80.0449014&appid=aa1ca6e3a3c3564b78a37a7c8b0e2f1a");
+            task.execute("https://api.openweathermap.org/data/2.5/weather?lat=12.8203368&lon=80.0449014&appid=5d6b1f234758771642fef1698dfcde50");
+            task2.execute("https://api.openweathermap.org/data/2.5/air_pollution?lat=12&lon=80&appid=5d6b1f234758771642fef1698dfcde50");
 
-              task.execute("https://api.openweathermap.org/data/2.5/weather?lat=" + lat +"&lon="+lon+ "&appid=aa1ca6e3a3c3564b78a37a7c8b0e2f1a");
+//              task.execute("https://api.openweathermap.org/data/2.5/weather?lat=" + lat +"&lon="+lon+ "&appid=aa1ca6e3a3c3564b78a37a7c8b0e2f1a");
 //
 //                InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 //                mgr.hideSoftInputFromWindow(editText.getWindowToken(), 0);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(getApplicationContext(),"Could not find weather :(",Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        public class DownloadTask extends AsyncTask<String,Void,String> {
-
-            @Override
-            protected String doInBackground(String... urls) {
-                String result = "";
-                URL url;
-                HttpURLConnection urlConnection = null;
-
-                try {
-
-                    url = new URL(urls[0]);
-                    urlConnection = (HttpURLConnection) url.openConnection();
-                    InputStream in = urlConnection.getInputStream();
-                    InputStreamReader reader = new InputStreamReader(in);
-                    int data = reader.read();
-
-                    while (data != -1) {
-                        char current = (char) data;
-                        result += current;
-                        data = reader.read();
-                    }
-
-                    return result;
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-
-                    Toast.makeText(getApplicationContext(),"Could not find weather :(",Toast.LENGTH_SHORT).show();
-
-                    return null;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(String s) {
-                super.onPostExecute(s);
-
-                try {
-                    JSONObject jsonObject = new JSONObject(s);
-
-                    String weatherInfo = jsonObject.getString("weather");
-
-                    Log.i("Weather content", weatherInfo);
-
-                    JSONArray arr = new JSONArray(weatherInfo);
-                    JSONObject temp = jsonObject.getJSONObject("main");
-
-                    String message = "";
-
-                    for (int i=0; i < arr.length(); i++) {
-                        JSONObject jsonPart = arr.getJSONObject(i);
-
-                        String main = jsonPart.getString("main");
-                        String description = jsonPart.getString("description");
-
-                        if (!main.equals("") && !description.equals("")) {
-                            message +=  description + "\r\n";
-                        }
-                    }
-                    Double tempo= Double.valueOf(temp.getString("temp"))-273;
-                    Log.i("temp", String.valueOf(tempo));
-                    tempval.setText(String.valueOf(tempo.intValue()));
-
-
-                    if (!message.equals("")) {
-                       descrip.setText(message);
-                        Log.i("message",message);
-                    } else {
-                        Toast.makeText(getApplicationContext(),"Could not find weather :(",Toast.LENGTH_SHORT).show();
-                    }
-
-                } catch (Exception e) {
-
-                    Toast.makeText(getApplicationContext(),"Could not find weather :(",Toast.LENGTH_SHORT).show();
-
-                    e.printStackTrace();
-                }
-
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(), "Could not find weather :(", Toast.LENGTH_SHORT).show();
         }
     }
+
+    public class DownloadTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... urls) {
+            Log.i("cdscdcdcdsdfc", "csddddddddddddddddddd");
+            String result = "";
+            URL url;
+            HttpURLConnection urlConnection = null;
+
+            try {
+
+                url = new URL(urls[0]);
+                urlConnection = (HttpURLConnection) url.openConnection();
+                InputStream in = urlConnection.getInputStream();
+                InputStreamReader reader = new InputStreamReader(in);
+                int data = reader.read();
+
+                while (data != -1) {
+                    char current = (char) data;
+                    result += current;
+                    data = reader.read();
+                }
+                Log.i("dcdscd", result);
+
+                return result;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                Toast.makeText(getApplicationContext(), "Could not find weather :(", Toast.LENGTH_SHORT).show();
+
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            try {
+                JSONObject jsonObject = new JSONObject(s);
+
+                String weatherInfo = jsonObject.getString("weather");
+
+                Log.i("Weather content", weatherInfo);
+
+                JSONArray arr = new JSONArray(weatherInfo);
+                JSONObject temp = jsonObject.getJSONObject("main");
+
+                String message = "";
+
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject jsonPart = arr.getJSONObject(i);
+
+                    String main = jsonPart.getString("main");
+                    String description = jsonPart.getString("description");
+
+                    if (!main.equals("") && !description.equals("")) {
+                        message += description + "\r\n";
+                    }
+                }
+                Double tempo = Double.valueOf(temp.getString("temp")) - 273;
+                Log.i("temp", String.valueOf(tempo));
+                tempval.setText(String.valueOf(tempo.intValue())+"°");
+
+
+                if (!message.equals("")) {
+                    descrip.setText(message);
+                    Log.i("message", message);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Could not find weather :(", Toast.LENGTH_SHORT).show();
+                }
+
+            } catch (Exception e) {
+
+                Toast.makeText(getApplicationContext(), "Could not find weather :(", Toast.LENGTH_SHORT).show();
+
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+
+    public class pollutiontask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... urls) {
+            Log.i("cdscdcdcdsdfc", "csddddddddddddddddddd");
+            String result = "";
+            URL url;
+            HttpURLConnection urlConnection = null;
+
+            try {
+
+                url = new URL(urls[0]);
+                urlConnection = (HttpURLConnection) url.openConnection();
+                InputStream in = urlConnection.getInputStream();
+                InputStreamReader reader = new InputStreamReader(in);
+                int data = reader.read();
+
+                while (data != -1) {
+                    char current = (char) data;
+                    result += current;
+                    data = reader.read();
+                }
+                Log.i("dcdscd", result);
+
+                return result;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                Toast.makeText(getApplicationContext(), "Could not find weather :(", Toast.LENGTH_SHORT).show();
+
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            try {
+                JSONObject jsonObject = new JSONObject(s);
+
+                String weatherInfo = jsonObject.getString("list");
+
+                Log.i("Weather content", weatherInfo);
+
+                JSONArray arr = new JSONArray(weatherInfo);
+//                JSONObject temp = jsonObject.getJSONObject("main");
+
+                String message = "";
+
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject jsonPart = arr.getJSONObject(i);
+
+                    String main = jsonPart.getString("main");
+//                    String description = jsonPart.getString("description");
+                    JSONObject jsonObt = new JSONObject(main);
+                    String aqi = jsonObt.getString("aqi");
+
+                    if (!main.equals("")) {
+                        message += aqi ;
+                    }
+
+                }
+//                Double tempo = Double.valueOf(temp.getString("temp")) - 273;
+//                Log.i("temp", String.valueOf(tempo));
+//                tempval.setText(String.valueOf(tempo.intValue()));
+//
+
+                if (!message.equals("")) {
+//                    descrip.setText(message);
+                    int val=Integer.valueOf(message);
+                    if(val==1){
+                        aqil.setText("Good(AQI<50)");
+                        aqud.setText("Fresh Air");
+                    }
+                    else if(val==2){
+                        aqil.setText("Stisfactory(AQI<50)");
+                        aqud.setText("Air is clean");
+                    }
+                    else if(val==3){
+                        aqil.setText("Mpderate(AQI<100)");
+                        aqud.setText("Suggested to wear a mask");
+                    }
+                    else if(val==4){
+                        aqil.setText("Poor(AQI<150)");
+                        aqud.setText("Suggested to wear a mask");
+                    }else if(val==5){
+                        aqil.setText("Polutted(AQI<200)");
+                        aqud.setText("Get the hell out of there");
+                    }
+
+                    Log.i("message", message);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Could not find weather :(", Toast.LENGTH_SHORT).show();
+                }
+
+            } catch (Exception e) {
+
+                Toast.makeText(getApplicationContext(), "Could not find weather :(", Toast.LENGTH_SHORT).show();
+
+                e.printStackTrace();
+            }
+
+        }
+    }
+}
+
 
